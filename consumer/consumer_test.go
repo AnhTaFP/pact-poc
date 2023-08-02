@@ -26,11 +26,11 @@ func TestConsumer(t *testing.T) {
 		WithRequest("GET", "/discounts/1").
 		WillRespondWith(200, func(b *consumer.V2ResponseBuilder) {
 			b.JSONBody(matchers.Map{
-				"id":          matchers.Like(1),
+				"id":          matchers.Integer(1),
 				"title":       matchers.Like("5.8% off"),
 				"description": matchers.Like("5.8% off for Singaporean 58th national day"),
 				"type":        matchers.Like("percentage"),
-				"value":       matchers.Like(5.8),
+				"value":       matchers.Decimal(5.8),
 			})
 		}).
 		ExecuteTest(t, func(config consumer.MockServerConfig) error {
