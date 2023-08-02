@@ -7,4 +7,4 @@ Proof of concept for service and service contract testing.
 
 ### Contract Test
 - To run consumer test, navigate to the root directory of the repository, then run `go test -v ./consumer/...`. This will produce a pact file under `/pacts`
-- To run provider test, navigate to the root directory of the repository, then run `go test -v ./provider/providertest/...`
+- To run provider test, navigate to the root directory of the repository, make sure the server is running by `go run provider/main.go`, then run `go test -v ./provider/providertest/...`
