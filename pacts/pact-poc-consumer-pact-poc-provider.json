@@ -1,0 +1,58 @@
+{
+  "consumer": {
+    "name": "pact-poc-consumer"
+  },
+  "interactions": [
+    {
+      "description": "a request to get discount #1",
+      "providerState": "discount #1 exists",
+      "request": {
+        "method": "GET",
+        "path": "/discounts/1"
+      },
+      "response": {
+        "body": {
+          "description": "5.8% off for Singaporean 58th national day",
+          "id": 1,
+          "title": "5.8% off",
+          "type": "percentage",
+          "value": 5.8
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "$.body.description": {
+            "match": "type"
+          },
+          "$.body.id": {
+            "match": "type"
+          },
+          "$.body.title": {
+            "match": "type"
+          },
+          "$.body.type": {
+            "match": "type"
+          },
+          "$.body.value": {
+            "match": "type"
+          }
+        },
+        "status": 200
+      }
+    }
+  ],
+  "metadata": {
+    "pactRust": {
+      "ffi": "0.4.5",
+      "mockserver": "1.1.1",
+      "models": "1.1.2"
+    },
+    "pactSpecification": {
+      "version": "2.0.0"
+    }
+  },
+  "provider": {
+    "name": "pact-poc-provider"
+  }
+}
