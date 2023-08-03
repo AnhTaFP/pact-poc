@@ -5,41 +5,81 @@
   "interactions": [
     {
       "description": "a request to get discount #1",
-      "providerState": "discount #1 exists",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "discount #1 exists"
+        }
+      ],
       "request": {
         "method": "GET",
         "path": "/discounts/1"
       },
       "response": {
         "body": {
-          "description": "5.8% off for Singaporean 58th national day",
-          "id": 1,
-          "title": "5.8% off",
-          "type": "percentage",
-          "value": 5.8
+          "content": {
+            "description": "5.8% off for Singaporean 58th national day",
+            "id": 1,
+            "title": "5.8% off",
+            "type": "percentage",
+            "value": 5.8
+          },
+          "contentType": "application/json",
+          "encoded": false
         },
         "headers": {
-          "Content-Type": "application/json"
+          "Content-Type": [
+            "application/json"
+          ]
         },
         "matchingRules": {
-          "$.body.description": {
-            "match": "type"
-          },
-          "$.body.id": {
-            "match": "integer"
-          },
-          "$.body.title": {
-            "match": "type"
-          },
-          "$.body.type": {
-            "match": "type"
-          },
-          "$.body.value": {
-            "match": "decimal"
+          "body": {
+            "$.description": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.value": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "decimal"
+                }
+              ]
+            }
           }
         },
         "status": 200
-      }
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
     }
   ],
   "metadata": {
@@ -49,7 +89,7 @@
       "models": "1.1.2"
     },
     "pactSpecification": {
-      "version": "2.0.0"
+      "version": "4.0"
     }
   },
   "provider": {

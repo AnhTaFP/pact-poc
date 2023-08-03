@@ -10,7 +10,7 @@ import (
 )
 
 func TestConsumer(t *testing.T) {
-	mockProvider, err := consumer.NewV2Pact(consumer.MockHTTPProviderConfig{
+	mockProvider, err := consumer.NewV4Pact(consumer.MockHTTPProviderConfig{
 		Consumer: "pact-poc-consumer",
 		Provider: "pact-poc-provider",
 		Port:     8089,
@@ -24,7 +24,7 @@ func TestConsumer(t *testing.T) {
 		Given("discount #1 exists").
 		UponReceiving("a request to get discount #1").
 		WithRequest("GET", "/discounts/1").
-		WillRespondWith(200, func(b *consumer.V2ResponseBuilder) {
+		WillRespondWith(200, func(b *consumer.V4ResponseBuilder) {
 			b.JSONBody(matchers.Map{
 				"id":          matchers.Integer(1),
 				"title":       matchers.Like("5.8% off"),
