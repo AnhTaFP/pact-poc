@@ -2,6 +2,7 @@ package consumer
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -33,6 +34,10 @@ func (c *Client) GetDiscount(id int) (*Discount, error) {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, errNotFound
+	}
+
 	b, _ := io.ReadAll(resp.Body)
 
 	var d Discount
@@ -40,3 +45,32 @@ func (c *Client) GetDiscount(id int) (*Discount, error) {
 
 	return &d, nil
 }
+
+func (c *Client) GetDiscounts(filter map[string]string) ([]Discount, error) {
+	url := fmt.Sprintf("%s/discounts", c.host)
+
+	if filter["type"] != "" {
+		url += "?type=" + filter["type"]
+	}
+
+	resp, err := http.DefaultClient.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	type response struct {
+		Discounts []Discount `json:"discounts"`
+	}
+
+	b, _ := io.ReadAll(resp.Body)
+
+	var r response
+	_ = json.Unmarshal(b, &r)
+
+	return r.Discounts, nil
+}
+
+var (
+	errNotFound = errors.New("discount not found")
+)

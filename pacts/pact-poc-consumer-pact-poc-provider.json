@@ -4,6 +4,173 @@
   },
   "interactions": [
     {
+      "description": "a request to get all percentage discounts",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "no percentage discounts exist"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/discounts",
+        "query": {
+          "type": [
+            "percentage"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "discounts": []
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.discounts": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "arrayContains",
+                  "variants": []
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to get all percentage discounts",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "two percentage discounts exist"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/discounts",
+        "query": {
+          "type": [
+            "percentage"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": {
+            "discounts": [
+              {
+                "description": "5.8% off for Singaporean 58th national day",
+                "id": 1,
+                "title": "5.8% off",
+                "type": "percentage",
+                "value": 5.8
+              },
+              {
+                "description": "5.8% off for Singaporean 58th national day",
+                "id": 1,
+                "title": "5.8% off",
+                "type": "percentage",
+                "value": 5.8
+              }
+            ]
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.discounts": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "max": 2,
+                  "min": 2
+                }
+              ]
+            },
+            "$.discounts[*].description": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                },
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.discounts[*].id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                },
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$.discounts[*].title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                },
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.discounts[*].type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                },
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.discounts[*].value": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "decimal"
+                },
+                {
+                  "match": "decimal"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
       "description": "a request to get discount #1",
       "pending": false,
       "providerStates": [
@@ -77,6 +244,24 @@
           }
         },
         "status": 200
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to get discount #2",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "discount #2 does not exist"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/discounts/2"
+      },
+      "response": {
+        "status": 404
       },
       "transport": "http",
       "type": "Synchronous/HTTP"

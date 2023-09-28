@@ -43,5 +43,74 @@ func TestConsumer(t *testing.T) {
 			return nil
 		})
 
+	err = mockProvider.
+		AddInteraction().
+		Given("discount #2 does not exist").
+		UponReceiving("a request to get discount #2").
+		WithRequest("GET", "/discounts/2").
+		WillRespondWith(404, func(b *consumer.V4ResponseBuilder) {}).
+		ExecuteTest(t, func(config consumer.MockServerConfig) error {
+			c := NewClient(fmt.Sprintf("http://%s:%d", config.Host, config.Port))
+			_, err := c.GetDiscount(2)
+
+			assert.ErrorIs(t, err, errNotFound)
+
+			return nil
+		})
+
+	err = mockProvider.
+		AddInteraction().
+		Given("two percentage discounts exist").
+		UponReceiving("a request to get all percentage discounts").
+		WithRequest("GET", "/discounts", func(b *consumer.V4RequestBuilder) {
+			b.Query("type", matchers.S("percentage"))
+		}).
+		WillRespondWith(200, func(b *consumer.V4ResponseBuilder) {
+			b.JSONBody(matchers.Map{
+				"discounts": matchers.ArrayMinMaxLike(matchers.Map{
+					"id":          matchers.Integer(1),
+					"title":       matchers.Like("5.8% off"),
+					"description": matchers.Like("5.8% off for Singaporean 58th national day"),
+					"type":        matchers.Like("percentage"),
+					"value":       matchers.Decimal(5.8),
+				}, 2, 2),
+			})
+		}).
+		ExecuteTest(t, func(config consumer.MockServerConfig) error {
+			c := NewClient(fmt.Sprintf("http://%s:%d", config.Host, config.Port))
+			discounts, err := c.GetDiscounts(map[string]string{
+				"type": "percentage",
+			})
+
+			assert.NoError(t, err)
+			assert.Equal(t, 2, len(discounts))
+
+			return nil
+		})
+
+	err = mockProvider.
+		AddInteraction().
+		Given("no percentage discounts exist").
+		UponReceiving("a request to get all percentage discounts").
+		WithRequest("GET", "/discounts", func(b *consumer.V4RequestBuilder) {
+			b.Query("type", matchers.S("percentage"))
+		}).
+		WillRespondWith(200, func(b *consumer.V4ResponseBuilder) {
+			b.JSONBody(matchers.Map{
+				"discounts": matchers.ArrayContaining([]interface{}{}),
+			})
+		}).
+		ExecuteTest(t, func(config consumer.MockServerConfig) error {
+			c := NewClient(fmt.Sprintf("http://%s:%d", config.Host, config.Port))
+			discounts, err := c.GetDiscounts(map[string]string{
+				"type": "percentage",
+			})
+
+			assert.NoError(t, err)
+			assert.Equal(t, 0, len(discounts))
+
+			return nil
+		})
+
 	assert.NoError(t, err)
 }
