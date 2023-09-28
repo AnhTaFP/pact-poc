@@ -170,5 +170,61 @@ func TestConsumer(t *testing.T) {
 			return nil
 		})
 
+	err = mockProvider.
+		AddInteraction().
+		Given("there is no discount").
+		UponReceiving("a valid request to create discount").
+		WithRequest("POST", "/discounts", func(b *consumer.V4RequestBuilder) {
+			b.JSONBody(matchers.Map{
+				"title":       matchers.Like("5.8% off"),
+				"description": matchers.Like("5.8% off for Singaporean 58th national day"),
+				"type":        matchers.Like("percentage"),
+				"value":       matchers.Decimal(5.8),
+			})
+			b.Header("Content-Type", matchers.S("application/json"))
+		}).
+		WillRespondWith(201).
+		ExecuteTest(t, func(config consumer.MockServerConfig) error {
+			c := NewClient(fmt.Sprintf("http://%s:%d", config.Host, config.Port))
+			err := c.CreateDiscount(Discount{
+				Title:       "new title",
+				Description: "new description",
+				Type:        "amount",
+				Value:       6.5,
+			})
+
+			assert.NoError(t, err)
+
+			return nil
+		})
+
+	err = mockProvider.
+		AddInteraction().
+		Given("there is no discount").
+		UponReceiving("an invalid request to create discount").
+		WithRequest("POST", "/discounts", func(b *consumer.V4RequestBuilder) {
+			b.JSONBody(matchers.Map{
+				"title":       matchers.Like("5.8% off"),
+				"description": matchers.Like("5.8% off for Singaporean 58th national day"),
+				"type":        matchers.Like("percentage"),
+				"value":       matchers.Decimal(5.8),
+			})
+			b.Header("Content-Type", matchers.S("application/json"))
+		}).
+		WillRespondWith(400).
+		ExecuteTest(t, func(config consumer.MockServerConfig) error {
+			c := NewClient(fmt.Sprintf("http://%s:%d", config.Host, config.Port))
+			err := c.CreateDiscount(Discount{
+				Title:       "new title",
+				Description: "new description",
+				Type:        "amount",
+				Value:       6.5,
+			})
+
+			assert.ErrorIs(t, err, errInvalidRequest)
+
+			return nil
+		})
+
 	assert.NoError(t, err)
 }

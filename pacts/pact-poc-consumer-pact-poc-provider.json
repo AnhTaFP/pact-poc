@@ -405,6 +405,146 @@
       },
       "transport": "http",
       "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a valid request to create discount",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "there is no discount"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "description": "5.8% off for Singaporean 58th national day",
+            "title": "5.8% off",
+            "type": "percentage",
+            "value": 5.8
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.description": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.value": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "decimal"
+                }
+              ]
+            }
+          },
+          "header": {}
+        },
+        "method": "POST",
+        "path": "/discounts"
+      },
+      "response": {
+        "status": 201
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "an invalid request to create discount",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "there is no discount"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "description": "5.8% off for Singaporean 58th national day",
+            "title": "5.8% off",
+            "type": "percentage",
+            "value": 5.8
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.description": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.value": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "decimal"
+                }
+              ]
+            }
+          },
+          "header": {}
+        },
+        "method": "POST",
+        "path": "/discounts"
+      },
+      "response": {
+        "status": 400
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
     }
   ],
   "metadata": {

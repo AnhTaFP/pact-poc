@@ -106,6 +106,38 @@ func (c *Client) PutDiscount(d Discount) error {
 	return nil
 }
 
+func (c *Client) CreateDiscount(d Discount) error {
+	url := fmt.Sprintf("%s/discounts", c.host)
+
+	var body struct {
+		Title       string  `json:"title"`
+		Description string  `json:"description"`
+		Type        string  `json:"type"`
+		Value       float64 `json:"value"`
+	}
+
+	body.Title = d.Title
+	body.Description = d.Description
+	body.Type = d.Type
+	body.Value = d.Value
+
+	rawBody, _ := json.Marshal(body)
+
+	resp, err := http.DefaultClient.Post(url, "application/json", bytes.NewReader(rawBody))
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusBadRequest {
+		return errInvalidRequest
+	}
+
+	return nil
+}
+
 var (
-	errNotFound = errors.New("discount not found")
+	errNotFound       = errors.New("discount not found")
+	errInvalidRequest = errors.New("invalid request")
 )
