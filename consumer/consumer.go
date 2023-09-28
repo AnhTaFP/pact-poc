@@ -137,6 +137,22 @@ func (c *Client) CreateDiscount(d Discount) error {
 	return nil
 }
 
+func (c *Client) DeleteDiscount(id int) error {
+	url := fmt.Sprintf("%s/discounts/%d", c.host, id)
+
+	req, _ := http.NewRequest("DELETE", url, nil)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode == http.StatusNotFound {
+		return errNotFound
+	}
+
+	return nil
+}
+
 var (
 	errNotFound       = errors.New("discount not found")
 	errInvalidRequest = errors.New("invalid request")

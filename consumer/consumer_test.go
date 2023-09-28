@@ -226,5 +226,35 @@ func TestConsumer(t *testing.T) {
 			return nil
 		})
 
+	err = mockProvider.
+		AddInteraction().
+		Given("discount exists").
+		UponReceiving("a request to delete discount").
+		WithRequest("DELETE", "/discounts/1").
+		WillRespondWith(200).
+		ExecuteTest(t, func(config consumer.MockServerConfig) error {
+			c := NewClient(fmt.Sprintf("http://%s:%d", config.Host, config.Port))
+			err := c.DeleteDiscount(1)
+
+			assert.NoError(t, err)
+
+			return nil
+		})
+
+	err = mockProvider.
+		AddInteraction().
+		Given("discount does not exist").
+		UponReceiving("a request to delete discount").
+		WithRequest("DELETE", "/discounts/1").
+		WillRespondWith(404).
+		ExecuteTest(t, func(config consumer.MockServerConfig) error {
+			c := NewClient(fmt.Sprintf("http://%s:%d", config.Host, config.Port))
+			err := c.DeleteDiscount(1)
+
+			assert.ErrorIs(t, err, errNotFound)
+
+			return nil
+		})
+
 	assert.NoError(t, err)
 }
