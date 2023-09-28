@@ -48,7 +48,7 @@ func TestConsumer(t *testing.T) {
 		Given("discount #2 does not exist").
 		UponReceiving("a request to get discount #2").
 		WithRequest("GET", "/discounts/2").
-		WillRespondWith(404, func(b *consumer.V4ResponseBuilder) {}).
+		WillRespondWith(404).
 		ExecuteTest(t, func(config consumer.MockServerConfig) error {
 			c := NewClient(fmt.Sprintf("http://%s:%d", config.Host, config.Port))
 			_, err := c.GetDiscount(2)
@@ -108,6 +108,64 @@ func TestConsumer(t *testing.T) {
 
 			assert.NoError(t, err)
 			assert.Equal(t, 0, len(discounts))
+
+			return nil
+		})
+
+	err = mockProvider.
+		AddInteraction().
+		Given("discount #1 exists").
+		UponReceiving("a request to modify discount #1").
+		WithRequest("PUT", "/discounts/1", func(b *consumer.V4RequestBuilder) {
+			b.JSONBody(matchers.Map{
+				"title":       matchers.Like("5.8% off"),
+				"description": matchers.Like("5.8% off for Singaporean 58th national day"),
+				"type":        matchers.Like("percentage"),
+				"value":       matchers.Decimal(5.8),
+			})
+			b.Header("Content-Type", matchers.S("application/json"))
+		}).
+		WillRespondWith(200).
+		ExecuteTest(t, func(config consumer.MockServerConfig) error {
+			c := NewClient(fmt.Sprintf("http://%s:%d", config.Host, config.Port))
+			err := c.PutDiscount(Discount{
+				ID:          1,
+				Title:       "new title",
+				Description: "new description",
+				Type:        "amount",
+				Value:       6.5,
+			})
+
+			assert.NoError(t, err)
+
+			return nil
+		})
+
+	err = mockProvider.
+		AddInteraction().
+		Given("discount #1 does not exist").
+		UponReceiving("a request to modify discount #1").
+		WithRequest("PUT", "/discounts/1", func(b *consumer.V4RequestBuilder) {
+			b.JSONBody(matchers.Map{
+				"title":       matchers.Like("5.8% off"),
+				"description": matchers.Like("5.8% off for Singaporean 58th national day"),
+				"type":        matchers.Like("percentage"),
+				"value":       matchers.Decimal(5.8),
+			})
+			b.Header("Content-Type", matchers.S("application/json"))
+		}).
+		WillRespondWith(404).
+		ExecuteTest(t, func(config consumer.MockServerConfig) error {
+			c := NewClient(fmt.Sprintf("http://%s:%d", config.Host, config.Port))
+			err := c.PutDiscount(Discount{
+				ID:          1,
+				Title:       "new title",
+				Description: "new description",
+				Type:        "amount",
+				Value:       6.5,
+			})
+
+			assert.ErrorIs(t, err, errNotFound)
 
 			return nil
 		})

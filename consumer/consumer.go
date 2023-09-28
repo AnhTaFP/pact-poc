@@ -1,6 +1,7 @@
 package consumer
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -69,6 +70,40 @@ func (c *Client) GetDiscounts(filter map[string]string) ([]Discount, error) {
 	_ = json.Unmarshal(b, &r)
 
 	return r.Discounts, nil
+}
+
+func (c *Client) PutDiscount(d Discount) error {
+	url := fmt.Sprintf("%s/discounts/%d", c.host, d.ID)
+
+	var body struct {
+		Title       string  `json:"title"`
+		Description string  `json:"description"`
+		Type        string  `json:"type"`
+		Value       float64 `json:"value"`
+	}
+
+	body.Title = d.Title
+	body.Description = d.Description
+	body.Type = d.Type
+	body.Value = d.Value
+
+	rawBody, _ := json.Marshal(body)
+
+	req, _ := http.NewRequest("PUT", url, bytes.NewReader(rawBody))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNotFound {
+		return errNotFound
+	}
+
+	return nil
 }
 
 var (
