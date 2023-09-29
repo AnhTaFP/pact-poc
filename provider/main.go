@@ -3,8 +3,10 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 	_ "github.com/mattn/go-sqlite3"
@@ -46,7 +48,24 @@ func main() {
 	}).Methods("GET")
 
 	r.HandleFunc("/discounts/{id}", func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		id := vars["id"]
 
+		discountID, _ := strconv.Atoi(id)
+		d, err := getOne(db, discountID)
+		if err != nil {
+			if errors.Is(err, errNotFound) {
+				http.Error(w, "", http.StatusNotFound)
+				return
+			}
+
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		b, _ := json.Marshal(d)
+		w.WriteHeader(http.StatusOK)
+		w.Write(b)
 	}).Methods("GET")
 
 	r.HandleFunc("/discounts/{id}", func(w http.ResponseWriter, r *http.Request) {
@@ -54,7 +73,22 @@ func main() {
 	}).Methods("PUT")
 
 	r.HandleFunc("/discounts/{id}", func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		id := vars["id"]
 
+		discountID, _ := strconv.Atoi(id)
+
+		if err := deleteOne(db, discountID); err != nil {
+			if errors.Is(err, errNotFound) {
+				http.Error(w, "", http.StatusNotFound)
+				return
+			}
+
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
 	}).Methods("DELETE")
 
 	if err := http.ListenAndServe("localhost:8080", r); err != nil {
@@ -91,3 +125,35 @@ func insert(db *sql.DB, d discount) error {
 
 	return err
 }
+
+func getOne(db *sql.DB, id int) (*discount, error) {
+	row := db.QueryRow("SELECT * FROM discounts WHERE id = ?", id)
+
+	var d discount
+	if err := row.Scan(&d.ID, &d.Title, &d.Description, &d.Type, &d.Value); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errNotFound
+		}
+
+		return nil, err
+	}
+
+	return &d, nil
+}
+
+func deleteOne(db *sql.DB, id int) error {
+	r, err := db.Exec("DELETE FROM discounts WHERE id = ?", id)
+	if err != nil {
+		return err
+	}
+
+	affected, _ := r.RowsAffected()
+
+	if affected == 0 {
+		return errNotFound
+	}
+
+	return nil
+}
+
+var errNotFound = errors.New("discount not found")
