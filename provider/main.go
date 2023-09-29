@@ -69,7 +69,34 @@ func main() {
 	}).Methods("GET")
 
 	r.HandleFunc("/discounts/{id}", func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		id := vars["id"]
 
+		discountID, _ := strconv.Atoi(id)
+
+		var body struct {
+			Title       string  `json:"title"`
+			Description string  `json:"description"`
+			Type        string  `json:"type"`
+			Value       float64 `json:"value"`
+		}
+
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if err := update(db, discountID, body.Title, body.Description, body.Type, body.Value); err != nil {
+			if errors.Is(err, errNotFound) {
+				http.Error(w, "", http.StatusNotFound)
+				return
+			}
+
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
 	}).Methods("PUT")
 
 	r.HandleFunc("/discounts/{id}", func(w http.ResponseWriter, r *http.Request) {
@@ -149,6 +176,20 @@ func deleteOne(db *sql.DB, id int) error {
 
 	affected, _ := r.RowsAffected()
 
+	if affected == 0 {
+		return errNotFound
+	}
+
+	return nil
+}
+
+func update(db *sql.DB, id int, title string, description string, discountType string, value float64) error {
+	r, err := db.Exec("UPDATE discounts SET title = ?, description = ?, type = ?, value = ? WHERE id = ?", title, description, discountType, value, id)
+	if err != nil {
+		return err
+	}
+
+	affected, _ := r.RowsAffected()
 	if affected == 0 {
 		return errNotFound
 	}
