@@ -44,7 +44,28 @@ func main() {
 	}).Methods("POST")
 
 	r.HandleFunc("/discounts", func(w http.ResponseWriter, r *http.Request) {
+		typeParam := r.URL.Query().Get("type")
 
+		discounts, err := queryDiscounts(db, typeParam)
+		if err != nil {
+			if errors.Is(err, errNotFound) {
+				http.Error(w, "", http.StatusNotFound)
+				return
+			}
+
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		var resp struct {
+			Discounts []discount `json:"discounts"`
+		}
+
+		resp.Discounts = discounts
+		b, _ := json.Marshal(resp)
+
+		w.WriteHeader(http.StatusOK)
+		w.Write(b)
 	}).Methods("GET")
 
 	r.HandleFunc("/discounts/{id}", func(w http.ResponseWriter, r *http.Request) {
@@ -195,6 +216,25 @@ func update(db *sql.DB, id int, title string, description string, discountType s
 	}
 
 	return nil
+}
+
+func queryDiscounts(db *sql.DB, typeParam string) ([]discount, error) {
+	rows, err := db.Query("SELECT * FROM discounts WHERE type = ?", typeParam)
+	if err != nil {
+		return nil, err
+	}
+
+	ds := make([]discount, 0)
+	for rows.Next() {
+		var d discount
+		if err := rows.Scan(&d.ID, &d.Title, &d.Description, &d.Type, &d.Value); err != nil {
+			return nil, err
+		}
+
+		ds = append(ds, d)
+	}
+
+	return ds, nil
 }
 
 var errNotFound = errors.New("discount not found")
