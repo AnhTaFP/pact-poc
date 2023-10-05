@@ -146,6 +146,6 @@ func startServer(db *sql.DB) {
 	}).Methods("DELETE")
 
 	if err := http.ListenAndServe("localhost:8080", r); err != nil {
-		log.Fatal("error occured:", err.Error())
+		log.Fatal("error occurred:", err.Error())
 	}
 }
