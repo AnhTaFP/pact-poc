@@ -12,7 +12,7 @@ import (
 func TestProvider(t *testing.T) {
 	const testServerAddr = "localhost:8081"
 
-	db, err := initDb("discounts.test.db")
+	db, err := initDb("../discounts.test.db")
 	if err != nil {
 		t.Fatal("cannot init db: ", err.Error())
 	}
