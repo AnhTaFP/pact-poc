@@ -92,6 +92,8 @@ func startServer(address string, db *sql.DB) {
 		}
 
 		b, _ := json.Marshal(d)
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write(b)
 	}).Methods("GET")
