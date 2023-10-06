@@ -28,10 +28,11 @@ func main() {
 		log.Fatal("error initiating db:", err.Error())
 	}
 
-	startServer(db)
+	address := "localhost:8080"
+	startServer(address, db)
 }
 
-func startServer(db *sql.DB) {
+func startServer(address string, db *sql.DB) {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/discounts", func(w http.ResponseWriter, r *http.Request) {
@@ -145,7 +146,7 @@ func startServer(db *sql.DB) {
 		w.WriteHeader(http.StatusOK)
 	}).Methods("DELETE")
 
-	if err := http.ListenAndServe("localhost:8080", r); err != nil {
+	if err := http.ListenAndServe(address, r); err != nil {
 		log.Fatal("error occurred:", err.Error())
 	}
 }
