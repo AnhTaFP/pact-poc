@@ -4,19 +4,66 @@
   },
   "interactions": [
     {
-      "description": "a request to delete discount",
+      "description": "a request to create discount",
       "pending": false,
-      "providerStates": [
-        {
-          "name": "discount does not exist"
-        }
-      ],
       "request": {
-        "method": "DELETE",
-        "path": "/discounts/1"
+        "body": {
+          "content": {
+            "description": "5.8% off for Singaporean 58th national day",
+            "title": "5.8% off",
+            "type": "percentage",
+            "value": 5.8
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.description": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.value": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "decimal"
+                }
+              ]
+            }
+          },
+          "header": {}
+        },
+        "method": "POST",
+        "path": "/discounts"
       },
       "response": {
-        "status": 404
+        "status": 201
       },
       "transport": "http",
       "type": "Synchronous/HTTP"
@@ -26,10 +73,21 @@
       "pending": false,
       "providerStates": [
         {
-          "name": "discount exists"
+          "name": "a discount exists"
         }
       ],
       "request": {
+        "matchingRules": {
+          "path": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "regex",
+                "regex": "\\/discounts\\/[0-9]+"
+              }
+            ]
+          }
+        },
         "method": "DELETE",
         "path": "/discounts/1"
       },
@@ -40,14 +98,92 @@
       "type": "Synchronous/HTTP"
     },
     {
-      "description": "a request to get all percentage discounts",
+      "description": "a request to delete discount",
       "pending": false,
       "providerStates": [
         {
-          "name": "no percentage discounts exist"
+          "name": "no discounts exist"
         }
       ],
       "request": {
+        "matchingRules": {
+          "path": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "regex",
+                "regex": "\\/discounts\\/[0-9]+"
+              }
+            ]
+          }
+        },
+        "method": "DELETE",
+        "path": "/discounts/1"
+      },
+      "response": {
+        "status": 404
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to get a discount",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "no discount exists"
+        }
+      ],
+      "request": {
+        "matchingRules": {
+          "path": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "regex",
+                "regex": "\\/discounts\\/[0-9]+"
+              }
+            ]
+          }
+        },
+        "method": "GET",
+        "path": "/discounts/1"
+      },
+      "response": {
+        "status": 404
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to get all discounts by type",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "no discounts exist"
+        }
+      ],
+      "request": {
+        "generators": {
+          "query": {
+            "$.type[0]": {
+              "expression": "${discount_type}",
+              "type": "ProviderState"
+            }
+          }
+        },
+        "matchingRules": {
+          "query": {
+            "$.type[0]": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
         "method": "GET",
         "path": "/discounts",
         "query": {
@@ -88,14 +224,34 @@
       "type": "Synchronous/HTTP"
     },
     {
-      "description": "a request to get all percentage discounts",
+      "description": "a request to get all discounts by type",
       "pending": false,
       "providerStates": [
         {
-          "name": "two percentage discounts exist"
+          "name": "two discounts of the same type exist"
         }
       ],
       "request": {
+        "generators": {
+          "query": {
+            "$.type[0]": {
+              "expression": "${discount_type}",
+              "type": "ProviderState"
+            }
+          }
+        },
+        "matchingRules": {
+          "query": {
+            "$.type[0]": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
         "method": "GET",
         "path": "/discounts",
         "query": {
@@ -199,7 +355,8 @@
                 }
               ]
             }
-          }
+          },
+          "header": {}
         },
         "status": 200
       },
@@ -207,14 +364,25 @@
       "type": "Synchronous/HTTP"
     },
     {
-      "description": "a request to get discount #1",
+      "description": "a request to get an existing discount",
       "pending": false,
       "providerStates": [
         {
-          "name": "discount #1 exists"
+          "name": "a discount exists"
         }
       ],
       "request": {
+        "matchingRules": {
+          "path": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "regex",
+                "regex": "\\/discounts\\/[0-9]+"
+              }
+            ]
+          }
+        },
         "method": "GET",
         "path": "/discounts/1"
       },
@@ -277,92 +445,84 @@
                 }
               ]
             }
+          },
+          "header": {}
+        },
+        "status": 200
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request to modify discount",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "no discounts exist"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "description": "5.8% off for Singaporean 58th national day",
+            "title": "5.8% off",
+            "type": "percentage",
+            "value": 5.8
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.description": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.title": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.value": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "decimal"
+                }
+              ]
+            }
+          },
+          "header": {},
+          "path": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "regex",
+                "regex": "\\/discounts\\/[0-9]+"
+              }
+            ]
           }
         },
-        "status": 200
-      },
-      "transport": "http",
-      "type": "Synchronous/HTTP"
-    },
-    {
-      "description": "a request to get discount #2",
-      "pending": false,
-      "providerStates": [
-        {
-          "name": "discount #2 does not exist"
-        }
-      ],
-      "request": {
-        "method": "GET",
-        "path": "/discounts/2"
-      },
-      "response": {
-        "status": 404
-      },
-      "transport": "http",
-      "type": "Synchronous/HTTP"
-    },
-    {
-      "description": "a request to modify discount #1",
-      "pending": false,
-      "providerStates": [
-        {
-          "name": "discount #1 does not exist"
-        }
-      ],
-      "request": {
-        "body": {
-          "content": {
-            "description": "5.8% off for Singaporean 58th national day",
-            "title": "5.8% off",
-            "type": "percentage",
-            "value": 5.8
-          },
-          "contentType": "application/json",
-          "encoded": false
-        },
-        "headers": {
-          "Content-Type": [
-            "application/json"
-          ]
-        },
-        "matchingRules": {
-          "body": {
-            "$.description": {
-              "combine": "AND",
-              "matchers": [
-                {
-                  "match": "type"
-                }
-              ]
-            },
-            "$.title": {
-              "combine": "AND",
-              "matchers": [
-                {
-                  "match": "type"
-                }
-              ]
-            },
-            "$.type": {
-              "combine": "AND",
-              "matchers": [
-                {
-                  "match": "type"
-                }
-              ]
-            },
-            "$.value": {
-              "combine": "AND",
-              "matchers": [
-                {
-                  "match": "decimal"
-                }
-              ]
-            }
-          },
-          "header": {}
-        },
         "method": "PUT",
         "path": "/discounts/1"
       },
@@ -373,11 +533,11 @@
       "type": "Synchronous/HTTP"
     },
     {
-      "description": "a request to modify discount #1",
+      "description": "a request to modify discount",
       "pending": false,
       "providerStates": [
         {
-          "name": "discount #1 exists"
+          "name": "a discount exists"
         }
       ],
       "request": {
@@ -431,153 +591,22 @@
               ]
             }
           },
-          "header": {}
+          "header": {},
+          "path": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "regex",
+                "regex": "\\/discounts\\/[0-9]+"
+              }
+            ]
+          }
         },
         "method": "PUT",
         "path": "/discounts/1"
       },
       "response": {
         "status": 200
-      },
-      "transport": "http",
-      "type": "Synchronous/HTTP"
-    },
-    {
-      "description": "a valid request to create discount",
-      "pending": false,
-      "providerStates": [
-        {
-          "name": "there is no discount"
-        }
-      ],
-      "request": {
-        "body": {
-          "content": {
-            "description": "5.8% off for Singaporean 58th national day",
-            "title": "5.8% off",
-            "type": "percentage",
-            "value": 5.8
-          },
-          "contentType": "application/json",
-          "encoded": false
-        },
-        "headers": {
-          "Content-Type": [
-            "application/json"
-          ]
-        },
-        "matchingRules": {
-          "body": {
-            "$.description": {
-              "combine": "AND",
-              "matchers": [
-                {
-                  "match": "type"
-                }
-              ]
-            },
-            "$.title": {
-              "combine": "AND",
-              "matchers": [
-                {
-                  "match": "type"
-                }
-              ]
-            },
-            "$.type": {
-              "combine": "AND",
-              "matchers": [
-                {
-                  "match": "type"
-                }
-              ]
-            },
-            "$.value": {
-              "combine": "AND",
-              "matchers": [
-                {
-                  "match": "decimal"
-                }
-              ]
-            }
-          },
-          "header": {}
-        },
-        "method": "POST",
-        "path": "/discounts"
-      },
-      "response": {
-        "status": 201
-      },
-      "transport": "http",
-      "type": "Synchronous/HTTP"
-    },
-    {
-      "description": "an invalid request to create discount",
-      "pending": false,
-      "providerStates": [
-        {
-          "name": "there is no discount"
-        }
-      ],
-      "request": {
-        "body": {
-          "content": {
-            "description": "5.8% off for Singaporean 58th national day",
-            "title": "5.8% off",
-            "type": "percentage",
-            "value": 5.8
-          },
-          "contentType": "application/json",
-          "encoded": false
-        },
-        "headers": {
-          "Content-Type": [
-            "application/json"
-          ]
-        },
-        "matchingRules": {
-          "body": {
-            "$.description": {
-              "combine": "AND",
-              "matchers": [
-                {
-                  "match": "type"
-                }
-              ]
-            },
-            "$.title": {
-              "combine": "AND",
-              "matchers": [
-                {
-                  "match": "type"
-                }
-              ]
-            },
-            "$.type": {
-              "combine": "AND",
-              "matchers": [
-                {
-                  "match": "type"
-                }
-              ]
-            },
-            "$.value": {
-              "combine": "AND",
-              "matchers": [
-                {
-                  "match": "decimal"
-                }
-              ]
-            }
-          },
-          "header": {}
-        },
-        "method": "POST",
-        "path": "/discounts"
-      },
-      "response": {
-        "status": 400
       },
       "transport": "http",
       "type": "Synchronous/HTTP"

@@ -28,19 +28,46 @@ func TestProvider(t *testing.T) {
 		ProviderVersion: "pact-proc-provider-v1.0",
 		PactDirs:        []string{"../pacts"}, // if we're using a Pact broker such as pact flow, this is not needed
 		StateHandlers: models.StateHandlers{
-			"discount #1 exists": func(setup bool, state models.ProviderState) (models.ProviderStateResponse, error) {
-				r, err := db.Exec("INSERT INTO discounts VALUES(NULL, ?,?,?,?)", "title", "description", "amount", 5.5)
-				if err != nil {
-					return models.ProviderStateResponse{}, err
+			"a discount exists": func(setup bool, state models.ProviderState) (models.ProviderStateResponse, error) {
+				if setup { // setup hook
+					_, err := db.Exec("INSERT INTO discounts VALUES(NULL, 'title', 'description', 'amount', 5.5)")
+					if err != nil {
+						return nil, err
+					}
+				} else { // teardown hook
+					_, err := db.Exec("DELETE FROM discounts")
+					if err != nil {
+						return nil, err
+					}
 				}
 
-				lastInsertID, err := r.LastInsertId()
+				return nil, nil
+			},
+			"no discount exists": func(setup bool, state models.ProviderState) (models.ProviderStateResponse, error) {
+				_, err := db.Exec("DELETE FROM discounts")
 				if err != nil {
-					return models.ProviderStateResponse{}, err
+					return nil, err
+				}
+
+				return nil, nil
+			},
+			"two discounts of the same type exist": func(setup bool, state models.ProviderState) (models.ProviderStateResponse, error) {
+				if setup { // setup hook
+					for i := 0; i < 2; i++ {
+						_, err := db.Exec("INSERT INTO discounts VALUES(NULL, 'title', 'description', 'percentage', 5.5)")
+						if err != nil {
+							return nil, err
+						}
+					}
+				} else { // teardown hook
+					_, err := db.Exec("DELETE FROM discounts WHERE type = 'percentage'")
+					if err != nil {
+						return nil, err
+					}
 				}
 
 				return models.ProviderStateResponse{
-					"id": int(lastInsertID),
+					"discount_type": "percentage",
 				}, nil
 			},
 		},

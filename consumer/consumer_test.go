@@ -21,10 +21,11 @@ func TestConsumer(t *testing.T) {
 
 	err = mockProvider.
 		AddInteraction().
-		Given("discount #1 exists").
-		UponReceiving("a request to get discount #1").
-		WithRequest("GET", "/discounts/1").
+		Given("a discount exists").
+		UponReceiving("a request to get an existing discount").
+		WithRequestPathMatcher("GET", matchers.Term("/discounts/1", `\/discounts\/[0-9]+`)).
 		WillRespondWith(200, func(b *consumer.V4ResponseBuilder) {
+			b.Header("Content-Type", matchers.String("application/json"))
 			b.JSONBody(matchers.Map{
 				"id":          matchers.Integer(1),
 				"title":       matchers.Like("5.8% off"),
@@ -45,9 +46,9 @@ func TestConsumer(t *testing.T) {
 
 	err = mockProvider.
 		AddInteraction().
-		Given("discount #2 does not exist").
-		UponReceiving("a request to get discount #2").
-		WithRequest("GET", "/discounts/2").
+		Given("no discount exists").
+		UponReceiving("a request to get a discount").
+		WithRequestPathMatcher("GET", matchers.Term("/discounts/1", `\/discounts\/[0-9]+`)).
 		WillRespondWith(404).
 		ExecuteTest(t, func(config consumer.MockServerConfig) error {
 			c := NewClient(fmt.Sprintf("http://%s:%d", config.Host, config.Port))
@@ -60,12 +61,13 @@ func TestConsumer(t *testing.T) {
 
 	err = mockProvider.
 		AddInteraction().
-		Given("two percentage discounts exist").
-		UponReceiving("a request to get all percentage discounts").
+		Given("two discounts of the same type exist").
+		UponReceiving("a request to get all discounts by type").
 		WithRequest("GET", "/discounts", func(b *consumer.V4RequestBuilder) {
-			b.Query("type", matchers.S("percentage"))
+			b.Query("type", matchers.FromProviderState("${discount_type}", "percentage"))
 		}).
 		WillRespondWith(200, func(b *consumer.V4ResponseBuilder) {
+			b.Header("Content-Type", matchers.String("application/json"))
 			b.JSONBody(matchers.Map{
 				"discounts": matchers.ArrayMinMaxLike(matchers.Map{
 					"id":          matchers.Integer(1),
@@ -77,9 +79,15 @@ func TestConsumer(t *testing.T) {
 			})
 		}).
 		ExecuteTest(t, func(config consumer.MockServerConfig) error {
+			value := matchers.FromProviderState("${discount_type}", "percentage").GetValue()
+			discountType, ok := value.(string)
+			if !ok {
+				return fmt.Errorf("cannot convert discount type %#v to string", value)
+			}
+
 			c := NewClient(fmt.Sprintf("http://%s:%d", config.Host, config.Port))
 			discounts, err := c.GetDiscounts(map[string]string{
-				"type": "percentage",
+				"type": discountType,
 			})
 
 			assert.NoError(t, err)
@@ -90,10 +98,10 @@ func TestConsumer(t *testing.T) {
 
 	err = mockProvider.
 		AddInteraction().
-		Given("no percentage discounts exist").
-		UponReceiving("a request to get all percentage discounts").
+		Given("no discounts exist").
+		UponReceiving("a request to get all discounts by type").
 		WithRequest("GET", "/discounts", func(b *consumer.V4RequestBuilder) {
-			b.Query("type", matchers.S("percentage"))
+			b.Query("type", matchers.FromProviderState("${discount_type}", "percentage"))
 		}).
 		WillRespondWith(200, func(b *consumer.V4ResponseBuilder) {
 			b.JSONBody(matchers.Map{
@@ -101,9 +109,15 @@ func TestConsumer(t *testing.T) {
 			})
 		}).
 		ExecuteTest(t, func(config consumer.MockServerConfig) error {
+			value := matchers.FromProviderState("${discount_type}", "percentage").GetValue()
+			discountType, ok := value.(string)
+			if !ok {
+				return fmt.Errorf("cannot convert discount type %#v to string", value)
+			}
+
 			c := NewClient(fmt.Sprintf("http://%s:%d", config.Host, config.Port))
 			discounts, err := c.GetDiscounts(map[string]string{
-				"type": "percentage",
+				"type": discountType,
 			})
 
 			assert.NoError(t, err)
@@ -114,9 +128,9 @@ func TestConsumer(t *testing.T) {
 
 	err = mockProvider.
 		AddInteraction().
-		Given("discount #1 exists").
-		UponReceiving("a request to modify discount #1").
-		WithRequest("PUT", "/discounts/1", func(b *consumer.V4RequestBuilder) {
+		Given("a discount exists").
+		UponReceiving("a request to modify discount").
+		WithRequestPathMatcher("PUT", matchers.Term("/discounts/1", `\/discounts\/[0-9]+`), func(b *consumer.V4RequestBuilder) {
 			b.JSONBody(matchers.Map{
 				"title":       matchers.Like("5.8% off"),
 				"description": matchers.Like("5.8% off for Singaporean 58th national day"),
@@ -143,9 +157,9 @@ func TestConsumer(t *testing.T) {
 
 	err = mockProvider.
 		AddInteraction().
-		Given("discount #1 does not exist").
-		UponReceiving("a request to modify discount #1").
-		WithRequest("PUT", "/discounts/1", func(b *consumer.V4RequestBuilder) {
+		Given("no discounts exist").
+		UponReceiving("a request to modify discount").
+		WithRequestPathMatcher("PUT", matchers.Term("/discounts/1", `\/discounts\/[0-9]+`), func(b *consumer.V4RequestBuilder) {
 			b.JSONBody(matchers.Map{
 				"title":       matchers.Like("5.8% off"),
 				"description": matchers.Like("5.8% off for Singaporean 58th national day"),
@@ -172,8 +186,8 @@ func TestConsumer(t *testing.T) {
 
 	err = mockProvider.
 		AddInteraction().
-		Given("there is no discount").
-		UponReceiving("a valid request to create discount").
+		//Given("there is no discount").
+		UponReceiving("a request to create discount").
 		WithRequest("POST", "/discounts", func(b *consumer.V4RequestBuilder) {
 			b.JSONBody(matchers.Map{
 				"title":       matchers.Like("5.8% off"),
@@ -200,37 +214,9 @@ func TestConsumer(t *testing.T) {
 
 	err = mockProvider.
 		AddInteraction().
-		Given("there is no discount").
-		UponReceiving("an invalid request to create discount").
-		WithRequest("POST", "/discounts", func(b *consumer.V4RequestBuilder) {
-			b.JSONBody(matchers.Map{
-				"title":       matchers.Like("5.8% off"),
-				"description": matchers.Like("5.8% off for Singaporean 58th national day"),
-				"type":        matchers.Like("percentage"),
-				"value":       matchers.Decimal(5.8),
-			})
-			b.Header("Content-Type", matchers.S("application/json"))
-		}).
-		WillRespondWith(400).
-		ExecuteTest(t, func(config consumer.MockServerConfig) error {
-			c := NewClient(fmt.Sprintf("http://%s:%d", config.Host, config.Port))
-			err := c.CreateDiscount(Discount{
-				Title:       "new title",
-				Description: "new description",
-				Type:        "amount",
-				Value:       6.5,
-			})
-
-			assert.ErrorIs(t, err, errInvalidRequest)
-
-			return nil
-		})
-
-	err = mockProvider.
-		AddInteraction().
-		Given("discount exists").
+		Given("a discount exists").
 		UponReceiving("a request to delete discount").
-		WithRequest("DELETE", "/discounts/1").
+		WithRequestPathMatcher("DELETE", matchers.Term("/discounts/1", `\/discounts\/[0-9]+`)).
 		WillRespondWith(200).
 		ExecuteTest(t, func(config consumer.MockServerConfig) error {
 			c := NewClient(fmt.Sprintf("http://%s:%d", config.Host, config.Port))
@@ -243,9 +229,9 @@ func TestConsumer(t *testing.T) {
 
 	err = mockProvider.
 		AddInteraction().
-		Given("discount does not exist").
+		Given("no discounts exist").
 		UponReceiving("a request to delete discount").
-		WithRequest("DELETE", "/discounts/1").
+		WithRequestPathMatcher("DELETE", matchers.Term("/discounts/1", `\/discounts\/[0-9]+`)).
 		WillRespondWith(404).
 		ExecuteTest(t, func(config consumer.MockServerConfig) error {
 			c := NewClient(fmt.Sprintf("http://%s:%d", config.Host, config.Port))

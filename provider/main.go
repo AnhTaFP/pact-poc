@@ -71,6 +71,7 @@ func startServer(address string, db *sql.DB) {
 		resp.Discounts = discounts
 		b, _ := json.Marshal(resp)
 
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write(b)
 	}).Methods("GET")
