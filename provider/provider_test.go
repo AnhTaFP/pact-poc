@@ -71,6 +71,23 @@ func TestProvider(t *testing.T) {
 					"discount_type": "percentage",
 				}, nil
 			},
+			"discounts limit is reached": func(setup bool, state models.ProviderState) (models.ProviderStateResponse, error) {
+				if setup {
+					for i := 0; i < 3; i++ {
+						_, err := db.Exec("INSERT INTO discounts VALUES(NULL, 'title', 'description', 'percentage', 5.5, ?, NULL)", time.Now())
+						if err != nil {
+							return nil, err
+						}
+					}
+				} else {
+					_, err := db.Exec("DELETE FROM discounts")
+					if err != nil {
+						return nil, err
+					}
+				}
+
+				return nil, nil
+			},
 		},
 	})
 

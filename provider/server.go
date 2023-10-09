@@ -21,6 +21,23 @@ func startServer(address string, db *sql.DB) {
 			return
 		}
 
+		// TODO new constraint: maximum discounts allowed to create is 3
+		// if there are already 3 discounts in the database,
+		// then return http.StatusInsufficientStorage (507)
+
+		const maxDiscounts = 3
+		c, err := countDiscounts(db)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if c >= maxDiscounts {
+			http.Error(w, "max discounts is reached", http.StatusInsufficientStorage)
+			return
+		}
+
 		if err := insert(db, d); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

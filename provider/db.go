@@ -110,4 +110,20 @@ func queryDiscounts(db *sql.DB, typeParam string) ([]discount, error) {
 	return ds, nil
 }
 
+func countDiscounts(db *sql.DB) (int, error) {
+	r, err := db.Query("SELECT COUNT(*) FROM discounts")
+	if err != nil {
+		return 0, nil
+	}
+
+	var count int
+	for r.Next() {
+		if err := r.Scan(&count); err != nil {
+			return 0, err
+		}
+	}
+
+	return count, nil
+}
+
 var errNotFound = errors.New("discount not found")

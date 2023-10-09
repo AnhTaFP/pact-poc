@@ -198,6 +198,36 @@ func TestConsumer(t *testing.T) {
 
 	err = mockProvider.
 		AddInteraction().
+		Given("discounts limit is reached").
+		UponReceiving("a request to create discount").
+		WithRequest("POST", "/discounts", func(b *consumer.V4RequestBuilder) {
+			b.JSONBody(matchers.Map{
+				"title":       matchers.Like("5.8% off"),
+				"description": matchers.Like("5.8% off for Singaporean 58th national day"),
+				"type":        matchers.Like("percentage"),
+				"value":       matchers.Decimal(5.8),
+			})
+			b.Header("Content-Type", matchers.S("application/json"))
+		}).
+		WillRespondWith(507).
+		ExecuteTest(t, func(config consumer.MockServerConfig) error {
+			c := NewClient(fmt.Sprintf("http://%s:%d", config.Host, config.Port))
+			err := c.CreateDiscount(Discount{
+				Title:       "new title",
+				Description: "new description",
+				Type:        "amount",
+				Value:       6.5,
+			})
+
+			assert.NoError(t, err)
+
+			return nil
+		})
+
+	assert.NoError(t, err)
+
+	err = mockProvider.
+		AddInteraction().
 		UponReceiving("a request to create discount").
 		WithRequest("POST", "/discounts", func(b *consumer.V4RequestBuilder) {
 			b.JSONBody(matchers.Map{
