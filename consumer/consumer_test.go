@@ -186,7 +186,6 @@ func TestConsumer(t *testing.T) {
 
 	err = mockProvider.
 		AddInteraction().
-		//Given("there is no discount").
 		UponReceiving("a request to create discount").
 		WithRequest("POST", "/discounts", func(b *consumer.V4RequestBuilder) {
 			b.JSONBody(matchers.Map{
