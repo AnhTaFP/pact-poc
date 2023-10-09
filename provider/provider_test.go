@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/pact-foundation/pact-go/v2/models"
 	"github.com/pact-foundation/pact-go/v2/provider"
@@ -30,7 +31,7 @@ func TestProvider(t *testing.T) {
 		StateHandlers: models.StateHandlers{
 			"a discount exists": func(setup bool, state models.ProviderState) (models.ProviderStateResponse, error) {
 				if setup { // setup hook
-					_, err := db.Exec("INSERT INTO discounts VALUES(NULL, 'title', 'description', 'amount', 5.5)")
+					_, err := db.Exec("INSERT INTO discounts VALUES(NULL, 'title', 'description', 'amount', 5.5, ?, NULL)", time.Now())
 					if err != nil {
 						return nil, err
 					}
@@ -54,7 +55,7 @@ func TestProvider(t *testing.T) {
 			"two discounts of the same type exist": func(setup bool, state models.ProviderState) (models.ProviderStateResponse, error) {
 				if setup { // setup hook
 					for i := 0; i < 2; i++ {
-						_, err := db.Exec("INSERT INTO discounts VALUES(NULL, 'title', 'description', 'percentage', 5.5)")
+						_, err := db.Exec("INSERT INTO discounts VALUES(NULL, 'title', 'description', 'percentage', 5.5, ?, NULL)", time.Now())
 						if err != nil {
 							return nil, err
 						}
