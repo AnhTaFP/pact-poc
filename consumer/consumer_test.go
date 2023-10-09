@@ -44,6 +44,8 @@ func TestConsumer(t *testing.T) {
 			return nil
 		})
 
+	assert.NoError(t, err)
+
 	err = mockProvider.
 		AddInteraction().
 		Given("no discount exists").
@@ -58,6 +60,8 @@ func TestConsumer(t *testing.T) {
 
 			return nil
 		})
+
+	assert.NoError(t, err)
 
 	err = mockProvider.
 		AddInteraction().
@@ -96,6 +100,8 @@ func TestConsumer(t *testing.T) {
 			return nil
 		})
 
+	assert.NoError(t, err)
+
 	err = mockProvider.
 		AddInteraction().
 		Given("no discounts exist").
@@ -126,6 +132,8 @@ func TestConsumer(t *testing.T) {
 			return nil
 		})
 
+	assert.NoError(t, err)
+
 	err = mockProvider.
 		AddInteraction().
 		Given("a discount exists").
@@ -154,6 +162,8 @@ func TestConsumer(t *testing.T) {
 
 			return nil
 		})
+
+	assert.NoError(t, err)
 
 	err = mockProvider.
 		AddInteraction().
@@ -184,6 +194,8 @@ func TestConsumer(t *testing.T) {
 			return nil
 		})
 
+	assert.NoError(t, err)
+
 	err = mockProvider.
 		AddInteraction().
 		UponReceiving("a request to create discount").
@@ -211,6 +223,8 @@ func TestConsumer(t *testing.T) {
 			return nil
 		})
 
+	assert.NoError(t, err)
+
 	err = mockProvider.
 		AddInteraction().
 		Given("a discount exists").
@@ -225,6 +239,8 @@ func TestConsumer(t *testing.T) {
 
 			return nil
 		})
+
+	assert.NoError(t, err)
 
 	err = mockProvider.
 		AddInteraction().
