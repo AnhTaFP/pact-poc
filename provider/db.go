@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"errors"
+	"time"
 )
 
 func initDb(dbFile string) (*sql.DB, error) {
@@ -12,7 +13,9 @@ CREATE TABLE IF NOT EXISTS discounts (
   title TEXT NOT NULL,
   description TEXT NOT NULL,
   type VARCHAR(25) NOT NULL,
-  value DECIMAL(10,5) NOT NULL
+  value DECIMAL(10,5) NOT NULL,
+  created_at DATE NOT NULL,
+  updated_at DATE DEFAULT NULL
 );
 `
 
@@ -29,7 +32,7 @@ CREATE TABLE IF NOT EXISTS discounts (
 }
 
 func insert(db *sql.DB, d discount) error {
-	_, err := db.Exec("INSERT INTO discounts VALUES(NULL, ?,?,?,?)", d.Title, d.Description, d.Type, d.Value)
+	_, err := db.Exec("INSERT INTO discounts VALUES(NULL, ?,?,?,?,?, NULL)", d.Title, d.Description, d.Type, d.Value, time.Now())
 
 	return err
 }
@@ -38,12 +41,17 @@ func getOne(db *sql.DB, id int) (*discount, error) {
 	row := db.QueryRow("SELECT * FROM discounts WHERE id = ?", id)
 
 	var d discount
-	if err := row.Scan(&d.ID, &d.Title, &d.Description, &d.Type, &d.Value); err != nil {
+	var updated sql.NullTime
+	if err := row.Scan(&d.ID, &d.Title, &d.Description, &d.Type, &d.Value, &d.CreatedAt, &updated); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errNotFound
 		}
 
 		return nil, err
+	}
+
+	if updated.Valid {
+		d.UpdatedAt = updated.Time
 	}
 
 	return &d, nil
@@ -65,7 +73,7 @@ func deleteOne(db *sql.DB, id int) error {
 }
 
 func update(db *sql.DB, id int, title string, description string, discountType string, value float64) error {
-	r, err := db.Exec("UPDATE discounts SET title = ?, description = ?, type = ?, value = ? WHERE id = ?", title, description, discountType, value, id)
+	r, err := db.Exec("UPDATE discounts SET title = ?, description = ?, type = ?, value = ?, updated_at = ? WHERE id = ?", title, description, discountType, value, time.Now(), id)
 	if err != nil {
 		return err
 	}
@@ -87,8 +95,13 @@ func queryDiscounts(db *sql.DB, typeParam string) ([]discount, error) {
 	ds := make([]discount, 0)
 	for rows.Next() {
 		var d discount
-		if err := rows.Scan(&d.ID, &d.Title, &d.Description, &d.Type, &d.Value); err != nil {
+		var updated sql.NullTime
+		if err := rows.Scan(&d.ID, &d.Title, &d.Description, &d.Type, &d.Value, &d.CreatedAt, &updated); err != nil {
 			return nil, err
+		}
+
+		if updated.Valid {
+			d.UpdatedAt = updated.Time
 		}
 
 		ds = append(ds, d)
