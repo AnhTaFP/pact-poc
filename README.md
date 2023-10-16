@@ -4,6 +4,7 @@ Proof of concept for service and service contract testing.
 ### Pre-requisites
 - Install pact-go version 2 by this command `go install github.com/pact-foundation/pact-go/v2@2.x.x`
 - Download and install all the required libraries by this command `pact-go -l DEBUG install`
+- Install [sqlite](https://formulae.brew.sh/formula/sqlite)
 
 ### Folder Structure
 - `provider` is an HTTP server that provides a CRUD API, storing data in sqlite.
